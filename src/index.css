@@ -9,19 +9,19 @@
 html,
 body {
   margin: 0;
-  background: #faf8f2;
-  color: #1e293b;
-  font-family: 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
-  background: #f7d774;
-  color: #451a03;
+  background: #fde68a;
+  color: #0f172a;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #e3b341 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }

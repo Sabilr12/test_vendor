@@ -18,22 +18,10 @@ import logoRdp from '../assets/logo-rdp.png';
 import ReviewModal from './ReviewModal';
 import PriceComparison from './PriceComparison';
 
-/* ---------- Gaya bersama (tema emas 3D) ---------- */
-const CARD =
-  'bg-white rounded-2xl border border-stone-200/70 shadow-[0_1px_2px_rgba(60,40,0,0.04),0_10px_28px_-14px_rgba(120,90,20,0.25)]';
-const GOLD_BTN =
-  'bg-[linear-gradient(180deg,#F7D774,#D9A21B)] text-amber-950 shadow-[0_2px_0_0_#A97A14] hover:brightness-105 active:translate-y-px active:shadow-none';
-const SOFT_BTN =
-  'bg-[linear-gradient(180deg,#FFF8DC,#F3D687)] text-amber-950 shadow-[0_3px_0_0_#C9A24A] hover:brightness-105 active:translate-y-[2px] active:shadow-[0_1px_0_0_#C9A24A]';
-const NAV_ACTIVE =
-  'bg-[linear-gradient(180deg,#FFFFFF,#FFF1C4)] text-amber-800 -translate-y-0.5 shadow-[0_3px_0_0_#A97A14,0_8px_14px_-4px_rgba(120,80,0,0.5)]';
-const NAV_IDLE = 'text-amber-950 hover:bg-white/35';
-
-const TONES = {
-  amber: { bar: 'from-amber-300 to-amber-500', tile: 'bg-amber-100 text-amber-700', num: 'text-slate-900' },
-  orange: { bar: 'from-orange-300 to-orange-500', tile: 'bg-orange-100 text-orange-600', num: 'text-orange-600' },
-  emerald: { bar: 'from-emerald-300 to-emerald-500', tile: 'bg-emerald-100 text-emerald-600', num: 'text-emerald-600' },
-};
+/* ---------- Gaya Desain Enterprise Bersih (Non-AI Look) ---------- */
+const CARD = 'bg-white rounded-xl border border-slate-200/80 shadow-xs';
+const BTN_SECONDARY =
+  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer';
 
 const normalizeStatus = (vendor) =>
   vendor.status === 'Lolos' ? 'Setuju' : vendor.status === 'Ditolak' ? 'Pending' : vendor.status;
@@ -108,32 +96,55 @@ export default function AdminDashboard({
   ];
 
   const stats = [
-    { label: 'Total Pengajuan Masuk', value: totalVendor, unit: 'Vendor', helper: 'Seluruh vendor yang mengajukan', icon: Users, tone: 'amber' },
-    { label: 'Status Pending', value: totalPending, helper: 'Menunggu evaluasi admin', icon: Clock, tone: 'orange' },
-    { label: 'Disetujui', value: totalSetuju, helper: 'Lolos kualifikasi rekanan', icon: CheckCircle, tone: 'emerald' },
+    {
+      label: 'Total Pengajuan Masuk',
+      value: totalVendor,
+      unit: 'Vendor',
+      helper: 'Seluruh rekanan terdaftar',
+      icon: Users,
+      iconColor: 'text-slate-700 bg-slate-100',
+    },
+    {
+      label: 'Menunggu Evaluasi',
+      value: totalPending,
+      unit: 'Pending',
+      helper: 'Perlu ditinjau kelayakannya',
+      icon: Clock,
+      iconColor: 'text-amber-700 bg-amber-50 border border-amber-200/60',
+    },
+    {
+      label: 'Telah Disetujui',
+      value: totalSetuju,
+      unit: 'Lolos',
+      helper: 'Memenuhi syarat rekanan',
+      icon: CheckCircle,
+      iconColor: 'text-emerald-700 bg-emerald-50 border border-emerald-200/60',
+    },
   ];
 
   const isPriceMenu = activeAdminMenu === 'perbandingan';
 
   return (
-    <div className="h-screen bg-[#FAF8F2] text-slate-800 flex overflow-hidden">
-      {/* ================= SIDEBAR ================= */}
-      <aside className="w-64 bg-[linear-gradient(160deg,#F8E08E_0%,#E8B94A_38%,#CB9722_72%,#E6BC4C_100%)] shadow-[inset_-1px_0_0_rgba(255,255,255,0.45),8px_0_24px_-10px_rgba(120,80,0,0.45)] flex flex-col shrink-0 relative z-20">
-        <div className="p-5 border-b border-amber-900/15 flex items-center gap-3">
-          <div className="shrink-0 p-1.5 rounded-xl bg-[linear-gradient(145deg,#FFFFFF,#FBEBB4)] shadow-[0_3px_0_0_#A97A14,0_8px_14px_-4px_rgba(120,80,0,0.5)]">
-            <img src={logoRdp} alt="Logo Rifansi" className="h-8 w-auto" />
+    <div className="h-screen bg-slate-50 text-slate-800 flex overflow-hidden">
+      {/* ================= SIDEBAR ENTERPRISE (Warna Oren Muda Bersih) ================= */}
+      <aside className="w-64 bg-orange-50/70 border-r border-orange-200/80 flex flex-col shrink-0 relative z-20">
+        {/* Brand / Logo Header */}
+        <div className="p-4 border-b border-orange-200/70 flex items-center gap-3">
+          <div className="shrink-0 p-1 bg-white rounded-lg border border-orange-200/90 shadow-xs">
+            <img src={logoRdp} alt="Logo Rifansi" className="h-7 w-auto object-contain" />
           </div>
           <div className="min-w-0 text-left">
-            <h2 className="text-[15px]! font-extrabold! text-amber-950! leading-tight! tracking-tight! m-0! whitespace-nowrap">
+            <h2 className="text-sm font-bold text-slate-900 leading-tight tracking-tight truncate m-0">
               Rifansi Dwi Putra
             </h2>
-            <p className="text-xs font-semibold text-amber-900/80">Admin</p>
+            <p className="text-[11px] font-semibold text-orange-700/80 m-0">Procurement System</p>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-          <p className="px-3 pb-1 text-[10px] font-bold tracking-widest text-amber-950/55 uppercase text-left">
-            Menu
+        {/* Navigation Menu */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <p className="px-3 pt-2 pb-1.5 text-[10px] font-bold tracking-wider text-orange-900/50 uppercase text-left">
+            Menu Utama
           </p>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -142,16 +153,18 @@ export default function AdminDashboard({
               <button
                 key={item.key}
                 onClick={() => setActiveAdminMenu(item.key)}
-                className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-left whitespace-nowrap transition cursor-pointer ${
-                  active ? NAV_ACTIVE : NAV_IDLE
+                className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition cursor-pointer ${
+                  active
+                    ? 'bg-white text-orange-950 font-semibold shadow-xs border border-orange-200/80'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-orange-100/60 font-medium'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 shrink-0" />
+                <span className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-orange-600' : 'text-slate-500'}`} />
                   {item.label}
                 </span>
                 {item.badge > 0 && (
-                  <span className="px-2 py-0.5 text-[11px] font-bold bg-white text-orange-700 rounded-full shadow-sm">
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-100 text-orange-800 rounded-full border border-orange-200/80">
                     {item.badge}
                   </span>
                 )}
@@ -160,101 +173,103 @@ export default function AdminDashboard({
           })}
         </nav>
 
-        <div className="p-4 border-t border-amber-900/15 space-y-2.5">
-          <div className="flex items-center gap-2.5 px-1">
-            <div className="w-9 h-9 shrink-0 rounded-full bg-[linear-gradient(145deg,#FFFFFF,#FBEBB4)] shadow-[0_2px_0_0_#A97A14] flex items-center justify-center font-bold text-amber-800">
+        {/* Footer Sidebar (User profile & action) */}
+        <div className="p-3 border-t border-orange-200/70 space-y-2">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 bg-white/90 rounded-lg border border-orange-200/80 shadow-xs">
+            <div className="w-8 h-8 shrink-0 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center font-bold text-xs text-orange-700">
               {(currentUser.email?.[0] || 'A').toUpperCase()}
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-xs font-bold text-amber-950 leading-tight">Administrator</p>
-              <p className="text-[11px] text-amber-900/80 truncate">{currentUser.email}</p>
+              <p className="text-xs font-semibold text-slate-800 leading-tight">Admin Officer</p>
+              <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
             </div>
           </div>
+
           <button
             onClick={onResetDemo}
-            className={`w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${SOFT_BTN}`}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-orange-100/60 border border-orange-200/80 transition cursor-pointer shadow-xs"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Reset Data Simulasi
+            <RefreshCw className="w-3.5 h-3.5 text-slate-500" /> Reset Simulasi Data
           </button>
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-[linear-gradient(180deg,#FFFFFF,#FFE9EC)] shadow-[0_3px_0_0_#C98A93] hover:brightness-105 active:translate-y-[2px] active:shadow-[0_1px_0_0_#C98A93] transition cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-rose-50/80 hover:bg-rose-100 border border-rose-200/70 transition cursor-pointer"
           >
-            <LogOut className="w-4 h-4" /> Keluar dari Admin
+            <LogOut className="w-3.5 h-3.5" /> Keluar Sesi
           </button>
         </div>
       </aside>
 
-      {/* ================= KONTEN ================= */}
+      {/* ================= AREA KONTEN UTAMA ================= */}
       <div className="flex-1 min-w-0 flex flex-col overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-white shadow-[0_6px_16px_-12px_rgba(120,90,20,0.4)]">
+        {/* Top Header */}
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xs border-b border-slate-200/80">
           <header className="px-6 py-3.5 flex items-center justify-between gap-4">
             <div className="text-left min-w-0">
-              <h1 className="text-lg! font-bold! text-slate-900! tracking-tight! leading-tight! m-0!">
+              <h1 className="text-base font-bold text-slate-900 tracking-tight leading-tight m-0">
                 {isPriceMenu
-                  ? 'Perbandingan Foto Katalog & Harga Vendor'
-                  : 'Verifikasi & Kualifikasi Vendor Masuk'}
+                  ? 'Perbandingan Foto Katalog & Penawaran Harga'
+                  : 'Prakualifikasi & Verifikasi Vendor Masuk'}
               </h1>
-              <p className="text-xs text-slate-500 m-0! mt-0.5!">
+              <p className="text-xs text-slate-500 m-0 mt-0.5">
                 {isPriceMenu
-                  ? 'Bandingkan foto katalog barang dan catat harga penawaran dari seluruh rekanan.'
-                  : 'Periksa profil perusahaan, foto katalog barang, dan berikan catatan evaluasi.'}
+                  ? 'Bandingkan penawaran spesifikasi katalog dan evaluasi harga rekanan.'
+                  : 'Tinjau profil legalitas, foto katalog produk/jasa, dan berikan keputusan hasil evaluasi.'}
               </p>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-stone-100 px-3 py-2 rounded-xl">
-                <CalendarDays className="w-3.5 h-3.5 text-amber-600" />
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
                 {todayLabel}
               </span>
-              <button
-                onClick={onRefreshData}
-                className={`whitespace-nowrap flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${SOFT_BTN}`}
-              >
-                <RefreshCw className="w-3.5 h-3.5" /> Muat Ulang Data
+              <button onClick={onRefreshData} className={BTN_SECONDARY}>
+                <RefreshCw className="w-3.5 h-3.5 text-slate-500" /> Segarkan Data
               </button>
             </div>
           </header>
         </div>
 
-        <main className="p-6 w-full max-w-[1600px] mx-auto space-y-6">
+        <main className="p-6 w-full max-w-[1500px] mx-auto space-y-5">
           {!isPriceMenu && (
             <>
+              {/* Notifikasi Pengajuan Baru (Subtle & Professional) */}
               {newSubmissionsCount > 0 && (
-                <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white px-4 py-3 flex items-center gap-3 text-xs text-amber-900">
-                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-2.5 flex items-center gap-3 text-xs text-amber-900 shadow-xs">
+                  <span className="relative flex h-2 w-2 shrink-0">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
                   </span>
-                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${GOLD_BTN}`}>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-white tracking-wider uppercase">
                     {newSubmissionsCount} BARU
                   </span>
-                  <span>Ada pengajuan kualifikasi / foto katalog baru dari vendor di baris paling atas.</span>
+                  <span>
+                    Terdapat pengajuan data vendor atau pembaruan foto katalog baru yang menunggu verifikasi Anda.
+                  </span>
                 </div>
               )}
 
+              {/* Stat Cards (Modern Enterprise Style) */}
               {activeAdminMenu === 'dashboard' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {stats.map((st) => {
                     const Icon = st.icon;
-                    const tone = TONES[st.tone];
                     return (
                       <div
                         key={st.label}
-                        className={`${CARD} relative overflow-hidden p-5 flex items-center justify-between transition hover:-translate-y-0.5`}
+                        className={`${CARD} p-5 flex items-start justify-between transition hover:border-slate-300`}
                       >
-                        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tone.bar}`} />
                         <div className="text-left">
-                          <p className="text-sm font-medium text-slate-500">{st.label}</p>
-                          <p className={`mt-1.5 text-3xl font-extrabold ${tone.num}`}>
-                            {st.value}
-                            {st.unit && (
-                              <span className="ml-1.5 text-base font-semibold text-slate-400">{st.unit}</span>
-                            )}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">{st.helper}</p>
+                          <p className="text-xs font-medium text-slate-500 tracking-wide">{st.label}</p>
+                          <div className="mt-1 flex items-baseline gap-1.5">
+                            <span className="text-2xl font-bold text-slate-900 tracking-tight">
+                              {st.value}
+                            </span>
+                            <span className="text-xs font-medium text-slate-400">{st.unit}</span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-slate-400">{st.helper}</p>
                         </div>
-                        <div className={`p-3.5 rounded-2xl ${tone.tile}`}>
-                          <Icon className="w-6 h-6" />
+                        <div className={`p-2.5 rounded-lg shrink-0 ${st.iconColor}`}>
+                          <Icon className="w-5 h-5" />
                         </div>
                       </div>
                     );
@@ -262,64 +277,79 @@ export default function AdminDashboard({
                 </div>
               )}
 
-              {/* Cari & filter */}
-              <div className={`${CARD} p-3.5 flex flex-col sm:flex-row gap-3 justify-between items-center`}>
-                <div className="relative w-full sm:w-96">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              {/* Search & Segmented Filter Bar */}
+              <div className={`${CARD} p-3 flex flex-col sm:flex-row gap-3 justify-between items-center`}>
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Cari nama vendor, email, atau bidang..."
+                    placeholder="Cari nama vendor, email, bidang usaha..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition"
                   />
                 </div>
-                <div className="inline-flex p-1 rounded-xl bg-stone-100 gap-1">
-                  {['Semua', 'Pending', 'Setuju'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setFilterStatus(status)}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                        filterStatus === status ? GOLD_BTN : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
-                      }`}
-                    >
-                      {status}
-                      <span className="ml-1.5 text-[10px] opacity-70">{filterCounts[status]}</span>
-                    </button>
-                  ))}
+
+                <div className="inline-flex p-1 rounded-lg bg-slate-100 border border-slate-200/60 gap-1 w-full sm:w-auto justify-center">
+                  {['Semua', 'Pending', 'Setuju'].map((status) => {
+                    const isSelected = filterStatus === status;
+                    return (
+                      <button
+                        key={status}
+                        onClick={() => setFilterStatus(status)}
+                        className={`px-3 py-1.5 rounded-md text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-white text-slate-900 font-semibold shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900 font-medium'
+                        }`}
+                      >
+                        <span>{status}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                            isSelected ? 'bg-slate-100 text-slate-700' : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {filterCounts[status]}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Tabel vendor */}
+              {/* Tabel Pengajuan Vendor */}
               <div className={`${CARD} overflow-hidden`}>
-                <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
                   <div className="text-left">
-                    <h3 className="text-sm font-bold text-slate-900">Daftar Pengajuan Vendor</h3>
-                    <p className="text-xs text-slate-400">
+                    <h3 className="text-sm font-semibold text-slate-900">Daftar Pengajuan Rekanan</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
                       Menampilkan {filteredVendors.length} dari {totalVendor} vendor
                     </p>
                   </div>
                 </div>
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-stone-50 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                        <th className="py-3 px-6">Perusahaan / Akun</th>
-                        <th className="py-3 px-6">Bidang & Foto Katalog</th>
-                        <th className="py-3 px-6">Catatan Admin</th>
-                        <th className="py-3 px-6 text-center">Status</th>
-                        <th className="py-3 px-6 text-right">Tindakan</th>
+                      <tr className="bg-slate-50/75 border-b border-slate-200/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        <th className="py-3 px-5">Perusahaan & Akun</th>
+                        <th className="py-3 px-5">Bidang & Dokumen</th>
+                        <th className="py-3 px-5">Catatan Evaluasi</th>
+                        <th className="py-3 px-5 text-center">Status</th>
+                        <th className="py-3 px-5 text-right">Tindakan</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-100 text-sm">
+                    <tbody className="divide-y divide-slate-100 text-xs">
                       {filteredVendors.length === 0 && (
                         <tr>
-                          <td colSpan="5" className="py-14 text-center">
-                            <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mb-3">
-                              <Inbox className="w-6 h-6 text-amber-500" />
+                          <td colSpan="5" className="py-12 text-center">
+                            <div className="mx-auto w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
+                              <Inbox className="w-5 h-5" />
                             </div>
-                            <p className="text-sm font-semibold text-slate-600">Tidak ada data vendor</p>
-                            <p className="text-xs text-slate-400">Coba ubah kata kunci atau filter status.</p>
+                            <p className="text-xs font-semibold text-slate-700">Tidak ada data vendor ditemukan</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              Coba ubah kata kunci pencarian atau filter status kualifikasi.
+                            </p>
                           </td>
                         </tr>
                       )}
@@ -328,74 +358,76 @@ export default function AdminDashboard({
                         return (
                           <tr
                             key={vendor.id}
-                            className={`transition ${
-                              vendor.isNew ? 'bg-amber-50/60 hover:bg-amber-50' : 'hover:bg-amber-50/40'
+                            className={`transition hover:bg-slate-50/70 ${
+                              vendor.isNew ? 'bg-amber-50/35' : ''
                             }`}
                           >
-                            <td className="py-4 px-6">
+                            <td className="py-3.5 px-5">
                               <div className="flex items-center gap-3">
-                                <div className="relative w-10 h-10 shrink-0 rounded-full bg-[linear-gradient(145deg,#F9E08E,#D9A21B)] text-amber-950 font-bold text-sm flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_2px_6px_-2px_rgba(120,80,0,0.5)]">
+                                <div className="w-9 h-9 shrink-0 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold text-xs flex items-center justify-center">
                                   {getInitials(vendor.nama)}
-                                  {vendor.isNew && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-orange-500 ring-2 ring-white" />
-                                  )}
                                 </div>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <p className="font-semibold text-slate-900">{vendor.nama}</p>
+                                    <p className="font-semibold text-slate-900 truncate">{vendor.nama}</p>
                                     {vendor.isNew && (
-                                      <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${GOLD_BTN}`}>
+                                      <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wide">
                                         BARU
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500">{vendor.email}</p>
+                                  <p className="text-[11px] text-slate-500 truncate">{vendor.email}</p>
                                   {vendor.submittedAt && (
-                                    <p className="text-[11px] text-slate-400 mt-0.5">
-                                      Masuk: {vendor.submittedAt}
+                                    <p className="text-[10px] text-slate-400 mt-0.5">
+                                      Diajukan: {vendor.submittedAt}
                                     </p>
                                   )}
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 px-6">
-                              <p className="text-slate-700">{vendor.kategori}</p>
-                              <span className="mt-1 inline-flex items-center gap-1 text-xs text-amber-800 font-semibold bg-amber-100/70 px-2 py-0.5 rounded-full">
-                                <ImageIcon className="w-3 h-3" />
+
+                            <td className="py-3.5 px-5">
+                              <p className="text-slate-800 font-medium">{vendor.kategori}</p>
+                              <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60 font-medium">
+                                <ImageIcon className="w-3 h-3 text-slate-500" />
                                 {vendor.katalog?.length || 0} Foto Katalog
                               </span>
                             </td>
-                            <td className="py-4 px-6 max-w-xs">
+
+                            <td className="py-3.5 px-5 max-w-xs">
                               {vendor.catatanAdmin ? (
-                                <p className="text-xs text-slate-600 line-clamp-2">{vendor.catatanAdmin}</p>
+                                <p className="text-xs text-slate-600 line-clamp-2 bg-slate-50/80 p-1.5 rounded-md border border-slate-200/50">
+                                  {vendor.catatanAdmin}
+                                </p>
                               ) : (
-                                <span className="text-xs text-slate-400 italic">Belum ada catatan</span>
+                                <span className="text-slate-400 italic text-[11px]">Belum ada catatan</span>
                               )}
                             </td>
-                            <td className="py-4 px-6 text-center">
+
+                            <td className="py-3.5 px-5 text-center">
                               {isApproved ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-                                  <CheckCircle className="w-3.5 h-3.5" /> Setuju
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  Setuju
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 ring-1 ring-orange-200">
-                                  <Clock className="w-3.5 h-3.5" /> Pending
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/80">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                  Pending
                                 </span>
                               )}
                             </td>
-                            <td className="py-4 px-6 text-right">
-                              <div className="inline-flex items-center gap-2">
-                                <button
-                                  onClick={() => handleOpenReview(vendor)}
-                                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${SOFT_BTN}`}
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
+
+                            <td className="py-3.5 px-5 text-right">
+                              <div className="inline-flex items-center gap-1.5">
+                                <button onClick={() => handleOpenReview(vendor)} className={BTN_SECONDARY}>
+                                  <Eye className="w-3.5 h-3.5 text-slate-500" />
                                   Periksa
                                 </button>
                                 <button
                                   onClick={() => handleDelete(vendor)}
-                                  title="Hapus"
-                                  className="p-2 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                                  title="Hapus Rekanan"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
