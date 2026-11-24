@@ -1,69 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { CheckCircle } from 'lucide-react';
-import { INITIAL_VENDORS } from './data/mockVendors';
+import { vendorService } from './services/vendorService';
 import AuthPage from './components/AuthPage';
 import VendorPortal from './components/VendorPortal';
 import AdminDashboard from './components/AdminDashboard';
-
-// --- DATABASE INDEXEDDB PERSISTEN ---
-const DB_NAME = 'eprocurement_db_v2';
-const STORE_NAME = 'vendors_store';
-const DATA_KEY = 'vendors_list';
-const SYNC_SIGNAL_KEY = 'eprocurement_last_updated';
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function loadVendorsFromDB(fallbackData) {
-  try {
-    const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(DATA_KEY);
-      req.onsuccess = () => {
-        if (Array.isArray(req.result)) {
-          resolve(req.result);
-        } else {
-          saveVendorsToDB(fallbackData);
-          resolve(fallbackData);
-        }
-      };
-      req.onerror = () => resolve(fallbackData);
-    });
-  } catch {
-    return fallbackData;
-  }
-}
-
-async function saveVendorsToDB(data) {
-  try {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.put(data, DATA_KEY);
-      req.onsuccess = () => {
-        localStorage.setItem(SYNC_SIGNAL_KEY, String(Date.now()));
-        resolve(true);
-      };
-      req.onerror = () => reject(req.error);
-    });
-  } catch (err) {
-    console.error('Gagal menyimpan ke IndexedDB:', err);
-  }
-}
 
 export default function App() {
   const [vendors, setVendors] = useState([]);
@@ -82,7 +22,6 @@ export default function App() {
 
     const handlePopState = (e) => {
       if (e.state?.page === 'app') {
-        // Tombol Maju ke halaman dashboard saat sesi sudah tidak ada: tetap di login
         if (!currentUserRef.current) {
           window.history.replaceState({ page: 'login' }, '', '#/login');
         }
@@ -95,31 +34,29 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // --- LOAD INITIAL DATA & REALTIME SYNC (LINTAS DEVICE) ---
   useEffect(() => {
-    loadVendorsFromDB(INITIAL_VENDORS).then((savedData) => {
-      setVendors(savedData);
-      setIsLoaded(true);
-    });
-  }, []);
+    let isMounted = true;
 
-  useEffect(() => {
-    const handleCrossTabSync = async (e) => {
-      if (e.key === SYNC_SIGNAL_KEY) {
-        const latest = await loadVendorsFromDB(INITIAL_VENDORS);
-        setVendors(latest);
+    vendorService.getAllVendors().then((savedData) => {
+      if (isMounted) {
+        setVendors(savedData);
+        setIsLoaded(true);
       }
-    };
-    window.addEventListener('storage', handleCrossTabSync);
-    return () => window.removeEventListener('storage', handleCrossTabSync);
-  }, []);
-
-  const updateVendorsDB = (updater) => {
-    setVendors((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
-      saveVendorsToDB(next);
-      return next;
     });
-  };
+
+    // Berlangganan event Realtime dari Supabase (dan fallback antar tab)
+    const unsubscribe = vendorService.subscribe((latestVendors) => {
+      if (isMounted) {
+        setVendors(latestVendors);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -137,7 +74,7 @@ export default function App() {
 
   // --- AUTH HANDLERS ---
   const handleLoginSuccess = async (userSession) => {
-    const latest = await loadVendorsFromDB(INITIAL_VENDORS);
+    const latest = await vendorService.getAllVendors();
     setVendors(latest);
     window.history.pushState({ page: 'app' }, '', `#/${userSession.role}`);
     setCurrentUser(userSession);
@@ -145,7 +82,6 @@ export default function App() {
 
   const handleLogout = () => {
     if (window.history.state?.page === 'app') {
-      // Mundur satu langkah supaya riwayat bersih; popstate yang mengosongkan sesi
       window.history.back();
     } else {
       setCurrentUser(null);
@@ -158,40 +94,39 @@ export default function App() {
       ? vendors.find((v) => v.email.toLowerCase() === currentUser.email.toLowerCase())
       : null;
 
-  const handleVendorSubmitKualifikasi = (formData) => {
-    updateVendorsDB((prevVendors) => {
-      const existingIndex = prevVendors.findIndex(
-        (v) => v.email.toLowerCase() === currentUser.email.toLowerCase()
-      );
+  const handleVendorSubmitKualifikasi = async (formData) => {
+    const existing = vendors.find(
+      (v) => v.email.toLowerCase() === currentUser.email.toLowerCase()
+    );
 
-      const payload = {
-        id: existingIndex !== -1 ? prevVendors[existingIndex].id : Date.now(),
-        email: currentUser.email,
-        nama: formData.nama.trim(),
-        kategori: formData.kategori.trim(),
-        alamat: formData.alamat.trim(),
-        pengalaman: formData.pengalaman.trim(),
-        katalog: existingIndex !== -1 ? prevVendors[existingIndex].katalog || [] : [],
-        rincianSkor:
-          existingIndex !== -1 ? prevVendors[existingIndex].rincianSkor || null : null,
-        skor: existingIndex !== -1 ? prevVendors[existingIndex].skor ?? null : null,
-        catatanAdmin:
-          existingIndex !== -1 ? prevVendors[existingIndex].catatanAdmin || '' : '',
-        status: existingIndex !== -1 ? prevVendors[existingIndex].status : 'Pending',
-        isNew: true,
-        submittedAt: getNowFormatted(),
-      };
+    const payload = {
+      id: existing ? existing.id : Date.now(),
+      email: currentUser.email,
+      nama: formData.nama.trim(),
+      kategori: formData.kategori.trim(),
+      alamat: formData.alamat.trim(),
+      pengalaman: formData.pengalaman.trim(),
+      katalog: existing ? existing.katalog || [] : [],
+      rincianSkor: existing ? existing.rincianSkor || null : null,
+      skor: existing ? existing.skor ?? null : null,
+      catatanAdmin: existing ? existing.catatanAdmin || '' : '',
+      status: existing ? existing.status : 'Pending',
+      isNew: true,
+      submittedAt: getNowFormatted(),
+    };
 
-      const others = prevVendors.filter(
+    setVendors((prev) => {
+      const others = prev.filter(
         (v) => v.email.toLowerCase() !== currentUser.email.toLowerCase()
       );
       return [payload, ...others];
     });
 
+    await vendorService.upsertVendor(payload);
     showToast('Data kualifikasi berhasil dikirim! Silakan unggah foto katalog.');
   };
 
-  const handleAddKatalogItem = (katalogForm) => {
+  const handleAddKatalogItem = async (katalogForm) => {
     if (!currentVendorData) return;
 
     const newItem = {
@@ -202,74 +137,82 @@ export default function App() {
       uploadedAt: getNowFormatted(),
     };
 
-    updateVendorsDB((prev) =>
-      prev.map((v) =>
-        v.id === currentVendorData.id
-          ? { ...v, katalog: [newItem, ...(v.katalog || [])], isNew: true }
-          : v
-      )
+    const updatedVendor = {
+      ...currentVendorData,
+      katalog: [newItem, ...(currentVendorData.katalog || [])],
+      isNew: true,
+    };
+
+    setVendors((prev) =>
+      prev.map((v) => (v.id === updatedVendor.id ? updatedVendor : v))
     );
+
+    await vendorService.upsertVendor(updatedVendor);
     showToast('Foto katalog berhasil tersimpan & terkirim ke Admin.');
   };
 
-  const handleDeleteKatalogItem = (itemId) => {
+  const handleDeleteKatalogItem = async (itemId) => {
     if (!currentVendorData) return;
-    updateVendorsDB((prev) =>
-      prev.map((v) =>
-        v.id === currentVendorData.id
-          ? { ...v, katalog: (v.katalog || []).filter((item) => item.id !== itemId) }
-          : v
-      )
+    const updatedVendor = {
+      ...currentVendorData,
+      katalog: (currentVendorData.katalog || []).filter((item) => item.id !== itemId),
+    };
+
+    setVendors((prev) =>
+      prev.map((v) => (v.id === updatedVendor.id ? updatedVendor : v))
     );
+
+    await vendorService.upsertVendor(updatedVendor);
     showToast('Foto katalog berhasil dihapus.');
   };
 
   // --- ADMIN HANDLERS ---
-  const handleMarkAsRead = (vendorId) => {
-    updateVendorsDB((prev) =>
-      prev.map((v) => (v.id === vendorId ? { ...v, isNew: false } : v))
-    );
+  const handleMarkAsRead = async (vendorId) => {
+    const target = vendors.find((v) => v.id === vendorId);
+    if (!target) return;
+    const updated = { ...target, isNew: false };
+    setVendors((prev) => prev.map((v) => (v.id === vendorId ? updated : v)));
+    await vendorService.upsertVendor(updated);
   };
 
-  const handleAdminDecision = (vendorId, decisionPayload) => {
-    updateVendorsDB((prev) =>
-      prev.map((v) =>
-        v.id === vendorId ? { ...v, ...decisionPayload, isNew: false } : v
-      )
-    );
+  const handleAdminDecision = async (vendorId, decisionPayload) => {
+    const target = vendors.find((v) => v.id === vendorId);
+    if (!target) return;
+    const updated = { ...target, ...decisionPayload, isNew: false };
+    setVendors((prev) => prev.map((v) => (v.id === vendorId ? updated : v)));
+    await vendorService.upsertVendor(updated);
     showToast(`Status evaluasi berhasil disimpan (${decisionPayload.status}).`);
   };
 
-  // Simpan permanen angka harga penawaran yang dicatat Admin ke IndexedDB
-  const handleUpdateCatalogPrice = (vendorId, itemId, newPrice) => {
+  const handleUpdateCatalogPrice = async (vendorId, itemId, newPrice) => {
     const numericPrice = newPrice === '' ? 0 : Math.max(0, Number(newPrice));
-    updateVendorsDB((prev) =>
-      prev.map((v) =>
-        v.id === vendorId
-          ? {
-              ...v,
-              katalog: (v.katalog || []).map((item) =>
-                item.id === itemId ? { ...item, nilaiPenawaran: numericPrice } : item
-              ),
-            }
-          : v
-      )
-    );
+    const target = vendors.find((v) => v.id === vendorId);
+    if (!target) return;
+    const updated = {
+      ...target,
+      katalog: (target.katalog || []).map((item) =>
+        item.id === itemId ? { ...item, nilaiPenawaran: numericPrice } : item
+      ),
+    };
+    setVendors((prev) => prev.map((v) => (v.id === vendorId ? updated : v)));
+    await vendorService.upsertVendor(updated);
   };
 
-  const handleDeleteVendor = (vendorId) => {
-    updateVendorsDB((prev) => prev.filter((v) => v.id !== vendorId));
+  const handleDeleteVendor = async (vendorId) => {
+    setVendors((prev) => prev.filter((v) => v.id !== vendorId));
+    await vendorService.deleteVendor(vendorId);
     showToast('Data vendor berhasil dihapus.');
   };
 
   const handleRefreshData = async () => {
-    const latest = await loadVendorsFromDB(INITIAL_VENDORS);
+    const latest = await vendorService.getAllVendors();
     setVendors(latest);
     showToast('Daftar pengajuan vendor diperbarui.');
   };
 
-  const handleResetDemo = () => {
-    updateVendorsDB(INITIAL_VENDORS);
+  const handleResetDemo = async () => {
+    const initial = await vendorService.resetDemo();
+    setVendors(initial);
     showToast('Data simulasi dikembalikan ke pengaturan awal.');
   };
 
