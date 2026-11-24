@@ -13,6 +13,8 @@ import {
   Eye,
   RefreshCw,
   Scale,
+  Menu,
+  X,
 } from 'lucide-react';
 import logoRdp from '../assets/logo-rdp.png';
 import ReviewModal from './ReviewModal';
@@ -47,6 +49,7 @@ export default function AdminDashboard({
   onLogout,
 }) {
   const [activeAdminMenu, setActiveAdminMenu] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('Semua');
   const [selectedVendor, setSelectedVendor] = useState(null);
@@ -125,20 +128,41 @@ export default function AdminDashboard({
   const isPriceMenu = activeAdminMenu === 'perbandingan';
 
   return (
-    <div className="h-screen bg-slate-50 text-slate-800 flex overflow-hidden">
-      {/* ================= SIDEBAR ENTERPRISE (Warna Oren Muda Bersih) ================= */}
-      <aside className="w-64 bg-orange-50/70 border-r border-orange-200/80 flex flex-col shrink-0 relative z-20">
+    <div className="h-screen bg-slate-50 text-slate-800 flex overflow-hidden relative">
+      {/* Backdrop Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 z-30 md:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      {/* ================= SIDEBAR ENTERPRISE (Warna Oren Muda Bersih & Responsif Mobile) ================= */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-orange-50/95 md:bg-orange-50/70 border-r border-orange-200/80 flex flex-col shrink-0 transition-transform duration-200 md:static md:translate-x-0 ${
+          mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
         {/* Brand / Logo Header */}
-        <div className="p-4 border-b border-orange-200/70 flex items-center gap-3">
-          <div className="shrink-0 p-1 bg-white rounded-lg border border-orange-200/90 shadow-xs">
-            <img src={logoRdp} alt="Logo Rifansi" className="h-7 w-auto object-contain" />
+        <div className="p-4 border-b border-orange-200/70 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="shrink-0 p-1 bg-white rounded-lg border border-orange-200/90 shadow-xs">
+              <img src={logoRdp} alt="Logo Rifansi" className="h-7 w-auto object-contain" />
+            </div>
+            <div className="min-w-0 text-left">
+              <h2 className="text-sm font-bold text-slate-900 leading-tight tracking-tight truncate m-0">
+                Rifansi Dwi Putra
+              </h2>
+              <p className="text-[11px] font-semibold text-orange-700/80 m-0">Procurement System</p>
+            </div>
           </div>
-          <div className="min-w-0 text-left">
-            <h2 className="text-sm font-bold text-slate-900 leading-tight tracking-tight truncate m-0">
-              Rifansi Dwi Putra
-            </h2>
-            <p className="text-[11px] font-semibold text-orange-700/80 m-0">Procurement System</p>
-          </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden p-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-orange-100 transition cursor-pointer"
+            title="Tutup Menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation Menu */}
@@ -152,7 +176,10 @@ export default function AdminDashboard({
             return (
               <button
                 key={item.key}
-                onClick={() => setActiveAdminMenu(item.key)}
+                onClick={() => {
+                  setActiveAdminMenu(item.key);
+                  setMobileMenuOpen(false);
+                }}
                 className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition cursor-pointer ${
                   active
                     ? 'bg-white text-orange-950 font-semibold shadow-xs border border-orange-200/80'
@@ -204,26 +231,36 @@ export default function AdminDashboard({
       <div className="flex-1 min-w-0 flex flex-col overflow-y-auto">
         {/* Top Header */}
         <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xs border-b border-slate-200/80">
-          <header className="px-6 py-3.5 flex items-center justify-between gap-4">
-            <div className="text-left min-w-0">
-              <h1 className="text-base font-bold text-slate-900 tracking-tight leading-tight m-0">
-                {isPriceMenu
-                  ? 'Perbandingan Foto Katalog & Penawaran Harga'
-                  : 'Prakualifikasi & Verifikasi Vendor Masuk'}
-              </h1>
-              <p className="text-xs text-slate-500 m-0 mt-0.5">
-                {isPriceMenu
-                  ? 'Bandingkan penawaran spesifikasi katalog dan evaluasi harga rekanan.'
-                  : 'Tinjau profil legalitas, foto katalog produk/jasa, dan berikan keputusan hasil evaluasi.'}
-              </p>
+          <header className="px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 text-left">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="md:hidden p-2 rounded-lg text-slate-700 bg-orange-50 border border-orange-200/80 hover:bg-orange-100 transition cursor-pointer shrink-0"
+                title="Buka Menu"
+              >
+                <Menu className="w-4 h-4 text-orange-700" />
+              </button>
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight m-0 truncate">
+                  {isPriceMenu
+                    ? 'Perbandingan Foto Katalog & Penawaran Harga'
+                    : 'Prakualifikasi & Verifikasi Vendor Masuk'}
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 m-0 mt-0.5 truncate">
+                  {isPriceMenu
+                    ? 'Bandingkan spesifikasi katalog dan evaluasi harga rekanan.'
+                    : 'Tinjau profil legalitas, foto katalog, dan berikan evaluasi.'}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/60">
                 <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
                 {todayLabel}
               </span>
               <button onClick={onRefreshData} className={BTN_SECONDARY}>
-                <RefreshCw className="w-3.5 h-3.5 text-slate-500" /> Segarkan Data
+                <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden sm:inline">Segarkan Data</span>
               </button>
             </div>
           </header>
