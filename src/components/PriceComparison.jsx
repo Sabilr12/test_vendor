@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { formatRupiah } from '../data/mockVendors';
+import { openPdfInNewTab } from '../utils/pdfHelper';
 
 export default function PriceComparison({ vendors, onUpdatePrice }) {
   const [searchItem, setSearchItem] = useState('');
@@ -373,14 +374,13 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
                 <p className="text-xs font-bold text-slate-800 truncate max-w-md">{previewImage.title}</p>
               </div>
               <div className="flex items-center gap-2">
-                <a
-                  href={previewImage.src}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                <button
+                  type="button"
+                  onClick={() => openPdfInNewTab(previewImage.src, previewImage.title)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" /> Buka Tab Baru
-                </a>
+                </button>
                 <button
                   onClick={() => setPreviewImage(null)}
                   className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"

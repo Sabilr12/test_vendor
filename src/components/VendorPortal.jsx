@@ -12,8 +12,11 @@ import {
   UploadCloud,
   ExternalLink,
   FileCheck,
+  Eye,
+  X,
 } from 'lucide-react';
 import logoRdp from '../assets/logo-rdp.png';
+import { openPdfInNewTab } from '../utils/pdfHelper';
 
 /* ---------- Gaya Bersih Enterprise (Non-AI Look & Mobile Responsive) ---------- */
 const CARD = 'bg-white rounded-xl border border-slate-200/80 shadow-xs';
@@ -51,6 +54,7 @@ export default function VendorPortal({
 }) {
   const [vendorMenu, setVendorMenu] = useState('kualifikasi');
   const [isRevising, setIsRevising] = useState(false);
+  const [previewPdfDoc, setPreviewPdfDoc] = useState(null);
 
   const [kualifikasiForm, setKualifikasiForm] = useState({
     nama: vendorData?.nama || currentUser.initialCompanyName || '',
@@ -460,22 +464,40 @@ export default function VendorPortal({
                           <p className="text-xs font-semibold text-slate-900 truncate">
                             {item.namaFoto || 'Dokumen_Katalog.pdf'}
                           </p>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-3 mt-1">
                             {item.uploadedAt && (
                               <span className="text-[10px] text-slate-400">
                                 {item.uploadedAt}
                               </span>
                             )}
                             {item.fotoKatalog && (
-                              <a
-                                href={item.fotoKatalog}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] text-orange-700 hover:text-orange-800 font-medium hover:underline"
-                              >
-                                <span>Buka File</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPreviewPdfDoc({
+                                      src: item.fotoKatalog,
+                                      title: item.namaFoto || 'Dokumen Katalog (PDF)',
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 text-[11px] text-orange-700 hover:text-orange-900 font-semibold hover:underline cursor-pointer"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Lihat Dokumen</span>
+                                </button>
+                                <span className="text-slate-300">•</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openPdfInNewTab(item.fotoKatalog, item.namaFoto)
+                                  }
+                                  className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 font-medium hover:underline cursor-pointer"
+                                  title="Buka Dokumen PDF di Tab Baru"
+                                >
+                                  <span>Tab Baru</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -496,6 +518,50 @@ export default function VendorPortal({
           </div>
         )}
       </main>
+
+      {/* Lightbox Modal Pratinjau PDF Vendor */}
+      {previewPdfDoc && (
+        <div
+          onClick={() => setPreviewPdfDoc(null)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-2 min-w-0 text-left">
+                <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                <p className="text-xs font-bold text-slate-800 truncate">{previewPdfDoc.title}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openPdfInNewTab(previewPdfDoc.src, previewPdfDoc.title)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <span>Buka di Tab Baru</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPdfDoc(null)}
+                  className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-100">
+              <iframe
+                src={previewPdfDoc.src}
+                className="w-full h-full border-none"
+                title={previewPdfDoc.title}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

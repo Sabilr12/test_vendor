@@ -11,6 +11,7 @@ import {
   FileText,
   Eye,
 } from 'lucide-react';
+import { openPdfInNewTab } from '../utils/pdfHelper';
 
 export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
   const initialStatus =
@@ -143,15 +144,16 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <a
-                            href={item.fotoKatalog}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openPdfInNewTab(item.fotoKatalog, item.namaFoto)
+                            }
                             className="p-1.5 text-orange-700 hover:text-orange-800 hover:bg-orange-50 rounded-md transition cursor-pointer"
                             title="Buka di Tab Baru"
                           >
                             <ExternalLink className="w-4 h-4" />
-                          </a>
+                          </button>
                         </>
                       )}
                     </div>
@@ -244,15 +246,16 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
                 <p className="text-xs font-bold text-slate-800 truncate">{previewPdf.title}</p>
               </div>
               <div className="flex items-center gap-2">
-                <a
-                  href={previewPdf.src}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition"
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPdfInNewTab(previewPdf.src, previewPdf.title)
+                  }
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition cursor-pointer"
                 >
                   <span>Buka di Tab Baru</span>
                   <ExternalLink className="w-3 h-3" />
-                </a>
+                </button>
                 <button
                   type="button"
                   onClick={() => setPreviewPdf(null)}
