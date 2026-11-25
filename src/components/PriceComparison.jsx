@@ -9,6 +9,7 @@ import {
   X,
   Award,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 import { formatRupiah } from '../data/mockVendors';
 
@@ -20,6 +21,8 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
 
   // Menyimpan draf ketikan sementara sebelum tombol centang/simpan diklik
   const [draftPrices, setDraftPrices] = useState({});
+  // Indikator sedang menyimpan per baris
+  const [savingRows, setSavingRows] = useState({});
   // Indikator centang berhasil disimpan per baris
   const [savedFeedback, setSavedFeedback] = useState({});
 
@@ -70,26 +73,34 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
   const pricedItems = allCatalogs.filter((d) => d.recordedPrice > 0);
   const lowestPrice = pricedItems.length > 0 ? pricedItems[0].recordedPrice : 0;
 
-  const handleSaveRowPrice = (doc) => {
+  const handleSaveRowPrice = async (doc) => {
     const rawValue =
       draftPrices[doc.uniqueKey] !== undefined
         ? draftPrices[doc.uniqueKey]
-        : doc.nilaiPenawaran || '';
+        : doc.nilaiPenawaran !== undefined && doc.nilaiPenawaran !== null
+        ? String(doc.nilaiPenawaran)
+        : '';
 
-    onUpdatePrice(doc.vendorId, doc.id, rawValue);
+    setSavingRows((prev) => ({ ...prev, [doc.uniqueKey]: true }));
+    try {
+      await onUpdatePrice(doc.vendorId, doc.id, rawValue);
 
-    // Bersihkan draf karena sudah masuk ke data utama
-    setDraftPrices((prev) => {
-      const copy = { ...prev };
-      delete copy[doc.uniqueKey];
-      return copy;
-    });
+      // Tetap pertahankan nilai input di draft agar tidak berkedip/kosong
+      setDraftPrices((prev) => ({
+        ...prev,
+        [doc.uniqueKey]: rawValue,
+      }));
 
-    // Tampilkan tanda tersimpan selama 2 detik
-    setSavedFeedback((prev) => ({ ...prev, [doc.uniqueKey]: true }));
-    setTimeout(() => {
-      setSavedFeedback((prev) => ({ ...prev, [doc.uniqueKey]: false }));
-    }, 2000);
+      // Tampilkan tanda centang tersimpan selama 3 detik
+      setSavedFeedback((prev) => ({ ...prev, [doc.uniqueKey]: true }));
+      setTimeout(() => {
+        setSavedFeedback((prev) => ({ ...prev, [doc.uniqueKey]: false }));
+      }, 3000);
+    } catch (err) {
+      console.error('Gagal simpan harga:', err);
+    } finally {
+      setSavingRows((prev) => ({ ...prev, [doc.uniqueKey]: false }));
+    }
   };
 
   return (
@@ -176,8 +187,13 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
                 const currentInputValue =
                   draftPrices[doc.uniqueKey] !== undefined
                     ? draftPrices[doc.uniqueKey]
-                    : doc.nilaiPenawaran || '';
+                    : doc.nilaiPenawaran !== undefined && doc.nilaiPenawaran !== null && doc.nilaiPenawaran !== 0
+                    ? String(doc.nilaiPenawaran)
+                    : doc.nilaiPenawaran === 0
+                    ? '0'
+                    : '';
 
+                const isSaving = Boolean(savingRows[doc.uniqueKey]);
                 const isJustSaved = Boolean(savedFeedback[doc.uniqueKey]);
 
                 return (
@@ -280,15 +296,32 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
                         </div>
                         <button
                           type="submit"
+                          disabled={isSaving}
                           title="Simpan Harga"
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-                            isJustSaved
-                              ? 'bg-emerald-600 text-white'
+                          className={`inline-flex items-center justify-center gap-1.5 min-w-[90px] px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                            isSaving
+                              ? 'bg-slate-400 text-white cursor-wait'
+                              : isJustSaved
+                              ? 'bg-emerald-600 text-white shadow-xs'
                               : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs'
                           }`}
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          {isJustSaved ? 'Tersimpan' : 'Simpan'}
+                          {isSaving ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Menyimpan...</span>
+                            </>
+                          ) : isJustSaved ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-white" />
+                              <span>Tersimpan</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Simpan</span>
+                            </>
+                          )}
                         </button>
                       </form>
                     </td>

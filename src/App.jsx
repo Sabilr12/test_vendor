@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { vendorService } from './services/vendorService';
+import { formatRupiah } from './data/mockVendors';
 import AuthPage from './components/AuthPage';
 import VendorPortal from './components/VendorPortal';
 import AdminDashboard from './components/AdminDashboard';
@@ -186,16 +187,21 @@ export default function App() {
 
   const handleUpdateCatalogPrice = async (vendorId, itemId, newPrice) => {
     const numericPrice = newPrice === '' ? 0 : Math.max(0, Number(newPrice));
-    const target = vendors.find((v) => v.id === vendorId);
+    const target = vendors.find((v) => String(v.id) === String(vendorId));
     if (!target) return;
     const updated = {
       ...target,
       katalog: (target.katalog || []).map((item) =>
-        item.id === itemId ? { ...item, nilaiPenawaran: numericPrice } : item
+        String(item.id) === String(itemId) ? { ...item, nilaiPenawaran: numericPrice } : item
       ),
     };
-    setVendors((prev) => prev.map((v) => (v.id === vendorId ? updated : v)));
+    setVendors((prev) =>
+      prev.map((v) => (String(v.id) === String(vendorId) ? updated : v))
+    );
     await vendorService.upsertVendor(updated);
+    showToast(
+      `Harga penawaran ${target.nama} berhasil disimpan (${formatRupiah(numericPrice)}).`
+    );
   };
 
   const handleDeleteVendor = async (vendorId) => {

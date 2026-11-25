@@ -134,10 +134,10 @@ export const vendorService = {
 
     // Selalu simpan juga ke IndexedDB lokal sebagai backup
     const local = await loadFromIndexedDB([]);
-    const existingIndex = local.findIndex((v) => v.id === vendorItem.id);
+    const existingIndex = local.findIndex((v) => String(v.id) === String(vendorItem.id));
     let nextList;
     if (existingIndex !== -1) {
-      nextList = local.map((v) => (v.id === vendorItem.id ? vendorItem : v));
+      nextList = local.map((v) => (String(v.id) === String(vendorItem.id) ? vendorItem : v));
     } else {
       nextList = [vendorItem, ...local];
     }
@@ -161,7 +161,7 @@ export const vendorService = {
     }
 
     const local = await loadFromIndexedDB([]);
-    const nextList = local.filter((v) => v.id !== vendorId);
+    const nextList = local.filter((v) => String(v.id) !== String(vendorId));
     await saveToIndexedDB(nextList);
     return nextList;
   },
