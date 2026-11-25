@@ -76,6 +76,13 @@ export const vendorService = {
   isCloudActive: isSupabaseConfigured,
 
   /**
+   * Mengambil data cache lokal seketika (agar layar tidak blank saat awal buka)
+   */
+  async getCachedVendors() {
+    return await loadFromIndexedDB([]);
+  },
+
+  /**
    * Mengambil seluruh data vendor:
    * Prioritas 1: Dari Supabase Cloud Database (lintas device)
    * Prioritas 2: Dari IndexedDB lokal jika Supabase belum disetting

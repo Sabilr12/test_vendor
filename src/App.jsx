@@ -39,22 +39,45 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    vendorService.getAllVendors().then((savedData) => {
-      if (isMounted) {
-        setVendors(savedData);
-        setIsLoaded(true);
-      }
-    });
+    // 1. Tampilkan data dari cache lokal seketika agar tidak blank
+    if (vendorService.getCachedVendors) {
+      vendorService.getCachedVendors().then((cached) => {
+        if (isMounted && Array.isArray(cached) && cached.length > 0) {
+          setVendors(cached);
+          setIsLoaded(true);
+        }
+      });
+    }
 
-    // Berlangganan event Realtime dari Supabase (dan fallback antar tab)
+    // 2. Ambil data cloud terbaru dari Supabase
+    vendorService
+      .getAllVendors()
+      .then((savedData) => {
+        if (isMounted) {
+          setVendors(savedData || []);
+          setIsLoaded(true);
+        }
+      })
+      .catch((err) => {
+        console.warn('Gagal sinkron data awal:', err);
+        if (isMounted) setIsLoaded(true);
+      });
+
+    // 3. Fallback keamanan: paksa halaman terbuka maksimal 1.5 detik jika sinyal lambat
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) setIsLoaded(true);
+    }, 1500);
+
+    // 4. Berlangganan event Realtime dari Supabase (dan fallback antar tab)
     const unsubscribe = vendorService.subscribe((latestVendors) => {
-      if (isMounted) {
+      if (isMounted && Array.isArray(latestVendors)) {
         setVendors(latestVendors);
       }
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
       unsubscribe();
     };
   }, []);
@@ -216,7 +239,19 @@ export default function App() {
     showToast('Daftar pengajuan vendor diperbarui.');
   };
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs max-w-xs w-full text-center">
+          <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div>
+            <p className="text-xs font-bold text-slate-800">Menghubungkan Portal...</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Memuat data rekanan & penawaran</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
