@@ -93,13 +93,9 @@ export default function AuthPage({ onLoginSuccess }) {
 
       setIsLoading(true);
       try {
-        // Ambil data vendor terbaru langsung dari cloud Supabase untuk cegah duplikasi email
-        const latestVendors = await vendorService.getAllVendors();
-        const existing = latestVendors.find(
-          (v) => v.email.toLowerCase() === emailClean
-        );
-
-        if (existing) {
+        // Cek cepat apakah email sudah terdaftar (tanpa unduh semua file PDF besar)
+        const isExists = await vendorService.checkEmailExists(emailClean);
+        if (isExists) {
           setAuthError(
             'Email perusahaan ini sudah terdaftar. Silakan masuk melalui formulir Masuk Akun.'
           );
@@ -135,7 +131,7 @@ export default function AuthPage({ onLoginSuccess }) {
         // Simpan langsung ke Supabase
         await vendorService.upsertVendor(newVendorPayload);
 
-        // Auto-login langsung ke VendorPortal
+        // Auto-login langsung ke VendorPortal tanpa delay
         onLoginSuccess({
           role: 'vendor',
           email: emailClean,
@@ -154,10 +150,8 @@ export default function AuthPage({ onLoginSuccess }) {
     if (authMode === 'vendor_login') {
       setIsLoading(true);
       try {
-        const latestVendors = await vendorService.getAllVendors();
-        const existing = latestVendors.find(
-          (v) => v.email.toLowerCase() === emailClean
-        );
+        // Cari vendor secara spesifik (cepat & efisien)
+        const existing = await vendorService.getVendorByEmail(emailClean);
 
         if (!existing) {
           setAuthError(

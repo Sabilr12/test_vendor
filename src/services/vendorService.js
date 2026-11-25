@@ -83,6 +83,64 @@ export const vendorService = {
   },
 
   /**
+   * Cek apakah email vendor sudah terdaftar (Cepat & Ringan, tidak perlu unduh PDF)
+   */
+  async checkEmailExists(email) {
+    const cleanEmail = email?.trim().toLowerCase();
+    if (!cleanEmail) return false;
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('vendors')
+          .select('id')
+          .ilike('email', cleanEmail)
+          .limit(1);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          return true;
+        }
+      } catch (err) {
+        console.warn('Gagal cek email di Supabase:', err);
+      }
+    }
+
+    const local = await loadFromIndexedDB([]);
+    return local.some((v) => v.email?.toLowerCase() === cleanEmail);
+  },
+
+  /**
+   * Ambil 1 data vendor berdasarkan email (Cepat untuk login, hanya ambil 1 akun)
+   */
+  async getVendorByEmail(email) {
+    const cleanEmail = email?.trim().toLowerCase();
+    if (!cleanEmail) return null;
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('vendors')
+          .select('*')
+          .ilike('email', cleanEmail)
+          .limit(1);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const v = data[0];
+          return {
+            ...v,
+            password: v.rincianSkor?._authPassword || v.password || '',
+          };
+        }
+      } catch (err) {
+        console.warn('Gagal getVendorByEmail di Supabase:', err);
+      }
+    }
+
+    const local = await loadFromIndexedDB([]);
+    return local.find((v) => v.email?.toLowerCase() === cleanEmail) || null;
+  },
+
+  /**
    * Mengambil seluruh data vendor:
    * Prioritas 1: Dari Supabase Cloud Database (lintas device)
    * Prioritas 2: Dari IndexedDB lokal jika Supabase belum disetting

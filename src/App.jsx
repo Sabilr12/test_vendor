@@ -97,11 +97,43 @@ export default function App() {
     });
 
   // --- AUTH HANDLERS ---
-  const handleLoginSuccess = async (userSession) => {
-    const latest = await vendorService.getAllVendors();
-    setVendors(latest);
+  const handleLoginSuccess = (userSession) => {
     window.history.pushState({ page: 'app' }, '', `#/${userSession.role}`);
     setCurrentUser(userSession);
+
+    // Jika vendor baru registrasi, masukkan data dasarnya langsung agar portal tidak kosong
+    if (userSession.role === 'vendor') {
+      setVendors((prev) => {
+        const exists = prev.some(
+          (v) => v.email?.toLowerCase() === userSession.email.toLowerCase()
+        );
+        if (!exists) {
+          return [
+            {
+              id: Date.now(),
+              email: userSession.email,
+              nama: userSession.initialCompanyName || '',
+              kategori: '',
+              alamat: '',
+              pengalaman: '',
+              katalog: [],
+              rincianSkor: null,
+              skor: null,
+              catatanAdmin: '',
+              status: 'Pending',
+              isNew: true,
+            },
+            ...prev,
+          ];
+        }
+        return prev;
+      });
+    }
+
+    // Ambil data lengkap dari Supabase di background tanpa menahan UI
+    vendorService.getAllVendors().then((latest) => {
+      if (Array.isArray(latest)) setVendors(latest);
+    });
   };
 
   const handleLogout = () => {
