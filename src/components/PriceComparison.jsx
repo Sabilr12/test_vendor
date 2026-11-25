@@ -4,8 +4,8 @@ import {
   Scale,
   CheckCircle,
   Clock,
-  Image as ImageIcon,
-  ZoomIn,
+  FileText,
+  ExternalLink,
   X,
   Award,
   Check,
@@ -216,28 +216,22 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
                             onClick={() =>
                               setPreviewImage({
                                 src: doc.fotoKatalog,
-                                title: doc.namaFoto || 'Foto Katalog',
+                                title: doc.namaFoto || 'Dokumen PDF Katalog',
                               })
                             }
-                            className="relative group w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 cursor-pointer"
+                            className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0 hover:bg-rose-100 transition cursor-pointer text-rose-600"
+                            title="Pratinjau Dokumen PDF"
                           >
-                            <img
-                              src={doc.fotoKatalog}
-                              alt="Katalog"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                              <ZoomIn className="w-4 h-4 text-white" />
-                            </div>
+                            <FileText className="w-5 h-5" />
                           </button>
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                            <ImageIcon className="w-4 h-4 text-slate-400" />
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                            <FileText className="w-5 h-5 text-slate-400" />
                           </div>
                         )}
-                        <div>
-                          <p className="text-xs font-semibold text-slate-800">
-                            {doc.namaFoto || 'Foto Katalog Barang'}
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 truncate max-w-[180px]">
+                            {doc.namaFoto || 'Dokumen PDF Katalog'}
                           </p>
                           {doc.fotoKatalog && (
                             <button
@@ -245,12 +239,13 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
                               onClick={() =>
                                 setPreviewImage({
                                   src: doc.fotoKatalog,
-                                  title: doc.namaFoto || 'Foto Katalog',
+                                  title: doc.namaFoto || 'Dokumen PDF Katalog',
                                 })
                               }
-                              className="text-[11px] text-slate-600 hover:text-slate-900 underline font-medium mt-0.5 cursor-pointer"
+                              className="text-[11px] text-primary-600 hover:text-primary-700 underline font-medium mt-0.5 cursor-pointer inline-flex items-center gap-1"
                             >
-                              Lihat Foto
+                              <FileText className="w-3 h-3" />
+                              Pratinjau PDF
                             </button>
                           )}
                         </div>
@@ -327,7 +322,7 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
         </div>
       </div>
 
-      {/* Lightbox Preview Foto */}
+      {/* Lightbox Preview Dokumen PDF */}
       {previewImage && (
         <div
           onClick={() => setPreviewImage(null)}
@@ -335,22 +330,39 @@ export default function PriceComparison({ vendors, onUpdatePrice }) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl max-w-2xl w-full p-4 space-y-3 shadow-2xl border border-slate-200"
+            className="bg-white rounded-xl max-w-4xl w-full h-[85vh] p-4 flex flex-col shadow-2xl border border-slate-200"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <p className="text-xs font-bold text-slate-800 truncate">{previewImage.title}</p>
-              <button
-                onClick={() => setPreviewImage(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <p className="text-xs font-bold text-slate-800 truncate max-w-md">{previewImage.title}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewImage.src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Buka Tab Baru
+                </a>
+                <button
+                  onClick={() => setPreviewImage(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <img
-              src={previewImage.src}
-              alt={previewImage.title}
-              className="w-full max-h-[70vh] object-contain rounded-lg bg-slate-50 border border-slate-100"
-            />
+            <div className="flex-1 w-full bg-slate-50 rounded-lg overflow-hidden border border-slate-200">
+              <iframe
+                src={previewImage.src}
+                title={previewImage.title}
+                className="w-full h-full border-none"
+              />
+            </div>
           </div>
         </div>
       )}

@@ -8,9 +8,10 @@ import {
   RotateCcw,
   Package,
   Lock,
-  Image as ImageIcon,
   MessageSquare,
   UploadCloud,
+  ExternalLink,
+  FileCheck,
 } from 'lucide-react';
 import logoRdp from '../assets/logo-rdp.png';
 
@@ -52,29 +53,39 @@ export default function VendorPortal({
   const [isRevising, setIsRevising] = useState(false);
 
   const [kualifikasiForm, setKualifikasiForm] = useState({
-    nama: currentUser.initialCompanyName || '',
-    kategori: '',
-    alamat: '',
-    pengalaman: '',
+    nama: vendorData?.nama || currentUser.initialCompanyName || '',
+    kategori: vendorData?.kategori || '',
+    alamat: vendorData?.alamat || '',
+    pengalaman: vendorData?.pengalaman || '',
   });
 
   const [katalogForm, setKatalogForm] = useState({
     fotoKatalog: '',
     namaFoto: '',
+    ukuranFile: '',
   });
 
-  const hasSubmittedKualifikasi = Boolean(vendorData);
+  // Kualifikasi dianggap sudah dikirim jika bidang usaha dan alamat sudah terisi
+  const hasSubmittedKualifikasi = Boolean(
+    vendorData?.kategori?.trim() && vendorData?.alamat?.trim()
+  );
   const hasAdminNote = Boolean(vendorData?.catatanAdmin && vendorData.catatanAdmin.trim() !== '');
 
-  const handleFotoKatalogChange = (e) => {
+  const handlePdfChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Mohon pilih file berformat PDF dokumen katalog/penawaran.');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onloadend = () => {
       setKatalogForm({
         fotoKatalog: reader.result,
         namaFoto: file.name,
+        ukuranFile: (file.size / 1024).toFixed(0) + ' KB',
       });
     };
     reader.readAsDataURL(file);
@@ -105,6 +116,7 @@ export default function VendorPortal({
     setKatalogForm({
       fotoKatalog: '',
       namaFoto: '',
+      ukuranFile: '',
     });
   };
 
@@ -146,7 +158,7 @@ export default function VendorPortal({
             title={
               !hasSubmittedKualifikasi
                 ? 'Selesaikan pengisian data kualifikasi terlebih dahulu'
-                : 'Unggah Foto Katalog Barang'
+                : 'Unggah Dokumen Katalog & Penawaran (PDF)'
             }
             className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition ${
               !hasSubmittedKualifikasi
@@ -161,7 +173,7 @@ export default function VendorPortal({
             ) : (
               <Package className="w-3.5 h-3.5" />
             )}
-            <span>2. Katalog Barang</span>
+            <span>2. Dokumen Katalog (PDF)</span>
             {hasSubmittedKualifikasi && (
               <span className="ml-1 px-1.5 py-0.2 bg-orange-100 text-orange-800 rounded-full text-[10px] font-bold border border-orange-200">
                 {vendorData.katalog?.length || 0}
@@ -234,7 +246,7 @@ export default function VendorPortal({
                       <input
                         type="text"
                         required
-                        placeholder="Contoh: Alat Berat & Konstruksi / IT"
+                        placeholder="Contoh: Alat Berat & Konstruksi / Logistik"
                         value={kualifikasiForm.kategori}
                         onChange={(e) =>
                           setKualifikasiForm({ ...kualifikasiForm, kategori: e.target.value })
@@ -277,8 +289,8 @@ export default function VendorPortal({
                       <Send className="w-3.5 h-3.5" />
                       <span>
                         {isRevising
-                          ? 'Perbarui Data & Lanjut ke Katalog'
-                          : 'Simpan Kualifikasi & Lanjut ke Katalog'}
+                          ? 'Perbarui Data & Lanjut ke Katalog PDF'
+                          : 'Simpan Kualifikasi & Lanjut ke Katalog PDF'}
                       </span>
                     </button>
                   </div>
@@ -295,7 +307,7 @@ export default function VendorPortal({
                         {vendorData.nama}
                       </h2>
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <CheckCircle className="w-3 h-3" /> Data Terkirim
+                        <CheckCircle className="w-3.5 h-3.5" /> Data Terkirim
                       </span>
                     </div>
                     <p className="text-xs text-orange-700 font-medium mt-0.5">
@@ -328,7 +340,7 @@ export default function VendorPortal({
 
                 <div className="pt-2 flex justify-end">
                   <button onClick={() => setVendorMenu('katalog')} className={BTN_PRIMARY}>
-                    <Package className="w-3.5 h-3.5" /> Lanjut ke Katalog Barang
+                    <Package className="w-3.5 h-3.5" /> Lanjut ke Dokumen Katalog (PDF)
                   </button>
                 </div>
               </div>
@@ -336,7 +348,7 @@ export default function VendorPortal({
           </>
         )}
 
-        {/* TAB 2: UPDATE FOTO KATALOG PRODUK */}
+        {/* TAB 2: UPDATE DOKUMEN KATALOG PRODUK (PDF) */}
         {vendorMenu === 'katalog' && vendorData && (
           <div className="space-y-5 text-left">
             {hasAdminNote && <AdminNote text={vendorData.catatanAdmin} compact />}
@@ -345,10 +357,10 @@ export default function VendorPortal({
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div>
                   <h2 className="text-base font-bold text-slate-900 tracking-tight">
-                    Unggah Foto Katalog & Penawaran
+                    Unggah Dokumen Katalog & Penawaran (PDF)
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Lampirkan foto brosur produk, alat, atau spesifikasi barang/jasa perusahaan Anda.
+                    Lampirkan file brosur produk, daftar harga, atau spesifikasi barang/jasa perusahaan dalam format PDF.
                   </p>
                 </div>
                 <span className="text-xs font-semibold text-orange-800 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-md">
@@ -358,20 +370,26 @@ export default function VendorPortal({
 
               <form onSubmit={handleKatalogSubmit} className="space-y-4">
                 <div>
-                  <label className="border-2 border-dashed border-slate-200 hover:border-orange-300 hover:bg-orange-50/30 bg-slate-50/60 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[190px]">
+                  <label className="border-2 border-dashed border-slate-200 hover:border-orange-300 hover:bg-orange-50/30 bg-slate-50/60 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[180px]">
                     {katalogForm.fotoKatalog ? (
-                      <div className="w-full max-w-sm space-y-2">
-                        <img
-                          src={katalogForm.fotoKatalog}
-                          alt="Preview Katalog"
-                          className="w-full h-44 object-contain rounded-lg border border-slate-200 bg-white"
-                        />
-                        <p className="text-xs font-semibold text-slate-800 truncate">
-                          {katalogForm.namaFoto}
-                        </p>
-                        <span className="inline-block text-[11px] text-orange-700 font-medium">
-                          Klik untuk mengganti foto
-                        </span>
+                      <div className="w-full max-w-sm p-4 bg-white rounded-xl border border-orange-200/80 shadow-xs flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0 text-left">
+                          <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            PDF
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate">
+                              {katalogForm.namaFoto}
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              {katalogForm.ukuranFile || 'File PDF Terpilih'}
+                            </p>
+                            <span className="text-[10px] text-orange-700 font-medium">
+                              Klik area ini jika ingin mengganti file
+                            </span>
+                          </div>
+                        </div>
+                        <FileCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                       </div>
                     ) : (
                       <>
@@ -379,17 +397,17 @@ export default function VendorPortal({
                           <UploadCloud className="w-6 h-6" />
                         </div>
                         <span className="text-xs font-bold text-slate-800">
-                          Klik untuk Memilih Foto Katalog (JPG / PNG)
+                          Klik untuk Memilih File Dokumen Katalog (.PDF)
                         </span>
                         <span className="text-[11px] text-slate-400 mt-0.5">
-                          Mendukung format gambar JPEG, JPG, atau PNG
+                          Format dokumen wajib PDF resmi (Brosur, Spesifikasi, atau Daftar Harga)
                         </span>
                       </>
                     )}
                     <input
                       type="file"
-                      accept="image/png, image/jpeg, image/jpg"
-                      onChange={handleFotoKatalogChange}
+                      accept="application/pdf, .pdf"
+                      onChange={handlePdfChange}
                       className="hidden"
                     />
                   </label>
@@ -405,63 +423,68 @@ export default function VendorPortal({
                         : `${BTN_PRIMARY} cursor-pointer`
                     }`}
                   >
-                    <Send className="w-3.5 h-3.5" /> Kirim Foto Katalog
+                    <Send className="w-3.5 h-3.5" /> Kirim Dokumen PDF
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* Galeri Katalog Terkirim */}
+            {/* Daftar Dokumen PDF Terkirim */}
             <div className={`${CARD} overflow-hidden`}>
               <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">
-                  Foto Katalog Terkirim ({vendorData.katalog?.length || 0})
+                  Dokumen PDF Terkirim ({vendorData.katalog?.length || 0})
                 </h3>
               </div>
 
               {!vendorData.katalog || vendorData.katalog.length === 0 ? (
                 <div className="py-10 text-center">
                   <div className="mx-auto w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
-                    <ImageIcon className="w-5 h-5" />
+                    <FileText className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-semibold text-slate-700">Belum ada foto katalog</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Foto yang Anda unggah akan tampil di sini.</p>
+                  <p className="text-xs font-semibold text-slate-700">Belum ada dokumen katalog</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">File PDF yang Anda unggah akan tampil di sini.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
                   {vendorData.katalog.map((item) => (
                     <div
                       key={item.id}
-                      className="border border-slate-200 rounded-lg p-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition"
+                      className="border border-slate-200 rounded-lg p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        {item.fotoKatalog ? (
-                          <img
-                            src={item.fotoKatalog}
-                            alt={item.namaFoto || 'Foto'}
-                            className="w-14 h-14 rounded-md object-cover border border-slate-200 shrink-0 bg-white"
-                          />
-                        ) : (
-                          <div className="w-14 h-14 rounded-md bg-slate-100 flex items-center justify-center shrink-0">
-                            <ImageIcon className="w-5 h-5 text-slate-400" />
-                          </div>
-                        )}
+                        <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200/80 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
+                          PDF
+                        </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-slate-900 truncate">
-                            {item.namaFoto || 'Foto Katalog'}
+                            {item.namaFoto || 'Dokumen_Katalog.pdf'}
                           </p>
-                          {item.uploadedAt && (
-                            <p className="text-[10px] text-slate-400 mt-0.5">
-                              {item.uploadedAt}
-                            </p>
-                          )}
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {item.uploadedAt && (
+                              <span className="text-[10px] text-slate-400">
+                                {item.uploadedAt}
+                              </span>
+                            )}
+                            {item.fotoKatalog && (
+                              <a
+                                href={item.fotoKatalog}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-orange-700 hover:text-orange-800 font-medium hover:underline"
+                              >
+                                <span>Buka File</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       <button
                         onClick={() => onDeleteKatalog(item.id)}
                         className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer shrink-0"
-                        title="Hapus Foto"
+                        title="Hapus Dokumen"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

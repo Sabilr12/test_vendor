@@ -210,12 +210,6 @@ export default function App() {
     showToast('Daftar pengajuan vendor diperbarui.');
   };
 
-  const handleResetDemo = async () => {
-    const initial = await vendorService.resetDemo();
-    setVendors(initial);
-    showToast('Data simulasi dikembalikan ke pengaturan awal.');
-  };
-
   if (!isLoaded) return null;
 
   return (
@@ -228,7 +222,7 @@ export default function App() {
       )}
 
       {!currentUser && (
-        <AuthPage vendors={vendors} onLoginSuccess={handleLoginSuccess} />
+        <AuthPage onLoginSuccess={handleLoginSuccess} />
       )}
 
       {currentUser?.role === 'vendor' && (
@@ -253,7 +247,6 @@ export default function App() {
           onUpdateCatalogPrice={handleUpdateCatalogPrice}
           onDeleteVendor={handleDeleteVendor}
           onRefreshData={handleRefreshData}
-          onResetDemo={handleResetDemo}
           onLogout={handleLogout}
         />
       )}

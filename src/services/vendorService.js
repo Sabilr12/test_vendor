@@ -89,21 +89,20 @@ export const vendorService = {
           .order('id', { ascending: false });
 
         if (!error && Array.isArray(data)) {
-          // Jika tabel di Supabase masih kosong, isi dengan data mock awal
-          if (data.length === 0) {
-            await supabase.from('vendors').insert(INITIAL_VENDORS);
-            saveToIndexedDB(INITIAL_VENDORS);
-            return INITIAL_VENDORS;
-          }
-          saveToIndexedDB(data);
-          return data;
+          // Normalisasi password dari rincianSkor jika tersimpan di sana
+          const normalized = data.map((v) => ({
+            ...v,
+            password: v.rincianSkor?._authPassword || v.password || '',
+          }));
+          saveToIndexedDB(normalized);
+          return normalized;
         }
         console.warn('Supabase fetch error, menggunakan data lokal:', error?.message);
       } catch (err) {
         console.warn('Koneksi Supabase gagal, beralih ke cache lokal:', err);
       }
     }
-    return await loadFromIndexedDB(INITIAL_VENDORS);
+    return await loadFromIndexedDB([]);
   },
 
   /**
@@ -112,7 +111,17 @@ export const vendorService = {
   async upsertVendor(vendorItem) {
     if (isSupabaseConfigured && supabase) {
       try {
-        const { error } = await supabase.from('vendors').upsert(vendorItem, {
+        // Amankan password ke rincianSkor._authPassword agar kompatibel dengan skema tabel
+        const payload = { ...vendorItem };
+        if (payload.password) {
+          payload.rincianSkor = {
+            ...(payload.rincianSkor || {}),
+            _authPassword: payload.password,
+          };
+          delete payload.password;
+        }
+
+        const { error } = await supabase.from('vendors').upsert(payload, {
           onConflict: 'id',
         });
         if (error) {
@@ -124,7 +133,7 @@ export const vendorService = {
     }
 
     // Selalu simpan juga ke IndexedDB lokal sebagai backup
-    const local = await loadFromIndexedDB(INITIAL_VENDORS);
+    const local = await loadFromIndexedDB([]);
     const existingIndex = local.findIndex((v) => v.id === vendorItem.id);
     let nextList;
     if (existingIndex !== -1) {
@@ -151,7 +160,7 @@ export const vendorService = {
       }
     }
 
-    const local = await loadFromIndexedDB(INITIAL_VENDORS);
+    const local = await loadFromIndexedDB([]);
     const nextList = local.filter((v) => v.id !== vendorId);
     await saveToIndexedDB(nextList);
     return nextList;

@@ -3,12 +3,13 @@ import {
   X,
   CheckCircle,
   Clock,
-  Image as ImageIcon,
-  ZoomIn,
   Building2,
   MapPin,
   Briefcase,
   Mail,
+  ExternalLink,
+  FileText,
+  Eye,
 } from 'lucide-react';
 
 export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
@@ -17,7 +18,7 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
 
   const [status, setStatus] = useState(initialStatus);
   const [catatanAdmin, setCatatanAdmin] = useState(vendor.catatanAdmin || '');
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewPdf, setPreviewPdf] = useState(null);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -43,7 +44,7 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
               Evaluasi & Verifikasi Rekanan
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Tinjau data legalitas, foto katalog penawaran, dan tentukan status kualifikasi vendor.
+              Tinjau data legalitas, dokumen katalog penawaran (PDF), dan tentukan status kualifikasi.
             </p>
           </div>
           <button
@@ -55,7 +56,7 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="p-6 space-y-5">
+        <form onSubmit={handleSave} className="p-6 space-y-5 text-left">
           {/* Informasi Perusahaan */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
             <div className="flex items-start justify-between gap-2">
@@ -65,7 +66,7 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm">{vendor.nama}</h4>
-                  <p className="text-xs text-amber-700 font-medium">{vendor.kategori}</p>
+                  <p className="text-xs text-orange-700 font-medium">{vendor.kategori}</p>
                 </div>
               </div>
               {vendor.submittedAt && (
@@ -93,56 +94,65 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
             </div>
           </div>
 
-          {/* Foto Katalog Barang yang Diunggah */}
+          {/* Dokumen Katalog (PDF) yang Diunggah Vendor */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide">
-                Foto Katalog / Brosur Produk ({vendor.katalog?.length || 0})
+                Dokumen Katalog & Brosur Penawaran (PDF) ({vendor.katalog?.length || 0})
               </label>
             </div>
 
             {!vendor.katalog || vendor.katalog.length === 0 ? (
               <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-                Vendor belum melampirkan foto katalog barang.
+                Vendor belum melampirkan dokumen katalog dalam format PDF.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {vendor.katalog.map((item) => (
                   <div
                     key={item.id}
-                    className="border border-slate-200 rounded-lg overflow-hidden bg-white group hover:border-slate-300 transition"
+                    className="border border-slate-200 rounded-lg p-3 bg-white hover:border-slate-300 transition flex items-center justify-between gap-3 shadow-2xs"
                   >
-                    {item.fotoKatalog ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPreviewImage({
-                            src: item.fotoKatalog,
-                            title: item.namaFoto || 'Foto Katalog',
-                          })
-                        }
-                        className="relative w-full h-24 block overflow-hidden bg-slate-100 cursor-pointer"
-                      >
-                        <img
-                          src={item.fotoKatalog}
-                          alt={item.namaFoto}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                          <ZoomIn className="w-4 h-4 text-white" />
-                        </div>
-                      </button>
-                    ) : (
-                      <div className="w-full h-24 bg-slate-100 flex items-center justify-center">
-                        <ImageIcon className="w-5 h-5 text-slate-400" />
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200/80 text-rose-600 flex items-center justify-center font-bold text-[11px] shrink-0">
+                        PDF
                       </div>
-                    )}
-                    <div className="p-2">
-                      <p className="text-[11px] font-semibold text-slate-800 truncate">
-                        {item.namaFoto || 'Foto Katalog.jpg'}
-                      </p>
-                      {item.uploadedAt && (
-                        <p className="text-[10px] text-slate-400 mt-0.5">{item.uploadedAt}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 truncate">
+                          {item.namaFoto || 'Dokumen_Katalog.pdf'}
+                        </p>
+                        {item.uploadedAt && (
+                          <p className="text-[10px] text-slate-400 mt-0.5">{item.uploadedAt}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {item.fotoKatalog && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewPdf({
+                                src: item.fotoKatalog,
+                                title: item.namaFoto || 'Dokumen Katalog (PDF)',
+                              })
+                            }
+                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition cursor-pointer"
+                            title="Pratinjau PDF"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <a
+                            href={item.fotoKatalog}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 text-orange-700 hover:text-orange-800 hover:bg-orange-50 rounded-md transition cursor-pointer"
+                            title="Buka di Tab Baru"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </>
                       )}
                     </div>
                   </div>
@@ -218,31 +228,47 @@ export default function ReviewModal({ vendor, onClose, onSubmitDecision }) {
         </form>
       </div>
 
-      {/* Lightbox Preview Foto */}
-      {previewImage && (
+      {/* Lightbox Modal Pratinjau PDF */}
+      {previewPdf && (
         <div
-          onClick={() => setPreviewImage(null)}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+          onClick={() => setPreviewPdf(null)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-60"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl max-w-2xl w-full p-4 space-y-2 shadow-2xl border border-slate-200"
+            className="bg-white rounded-xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <p className="text-xs font-bold text-slate-800 truncate">{previewImage.title}</p>
-              <button
-                type="button"
-                onClick={() => setPreviewImage(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-2 min-w-0 text-left">
+                <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                <p className="text-xs font-bold text-slate-800 truncate">{previewPdf.title}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewPdf.src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition"
+                >
+                  <span>Buka di Tab Baru</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPdf(null)}
+                  className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-            <img
-              src={previewImage.src}
-              alt={previewImage.title}
-              className="w-full max-h-[70vh] object-contain rounded-lg bg-slate-50 border border-slate-100"
-            />
+            <div className="flex-1 bg-slate-100">
+              <iframe
+                src={previewPdf.src}
+                className="w-full h-full border-none"
+                title={previewPdf.title}
+              />
+            </div>
           </div>
         </div>
       )}

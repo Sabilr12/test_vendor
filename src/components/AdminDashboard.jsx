@@ -3,7 +3,7 @@ import {
   CalendarDays,
   CheckCircle,
   Clock,
-  Image as ImageIcon,
+  FileText,
   Inbox,
   LayoutDashboard,
   Users,
@@ -45,7 +45,6 @@ export default function AdminDashboard({
   onUpdateCatalogPrice,
   onDeleteVendor,
   onRefreshData,
-  onResetDemo,
   onLogout,
 }) {
   const [activeAdminMenu, setActiveAdminMenu] = useState('dashboard');
@@ -207,17 +206,11 @@ export default function AdminDashboard({
               {(currentUser.email?.[0] || 'A').toUpperCase()}
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-xs font-semibold text-slate-800 leading-tight">Admin Officer</p>
+              <p className="text-xs font-semibold text-slate-800 leading-tight">Admin Procurement</p>
               <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
             </div>
           </div>
 
-          <button
-            onClick={onResetDemo}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-orange-100/60 border border-orange-200/80 transition cursor-pointer shadow-xs"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-slate-500" /> Reset Simulasi Data
-          </button>
           <button
             onClick={onLogout}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-rose-50/80 hover:bg-rose-100 border border-rose-200/70 transition cursor-pointer"
@@ -379,13 +372,15 @@ export default function AdminDashboard({
                     <tbody className="divide-y divide-slate-100 text-xs">
                       {filteredVendors.length === 0 && (
                         <tr>
-                          <td colSpan="5" className="py-12 text-center">
-                            <div className="mx-auto w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
-                              <Inbox className="w-5 h-5" />
+                          <td colSpan="5" className="py-14 text-center">
+                            <div className="mx-auto w-12 h-12 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center mb-2.5 text-orange-600">
+                              <Inbox className="w-6 h-6" />
                             </div>
-                            <p className="text-xs font-semibold text-slate-700">Tidak ada data vendor ditemukan</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
-                              Coba ubah kata kunci pencarian atau filter status kualifikasi.
+                            <p className="text-xs font-bold text-slate-800">Belum Ada Rekanan yang Terdaftar</p>
+                            <p className="text-[11px] text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                              {searchQuery || filterStatus !== 'Semua'
+                                ? 'Tidak ada rekanan yang sesuai dengan filter pencarian.'
+                                : 'Vendor baru yang mendaftar melalui portal publik akan otomatis muncul di sini secara realtime.'}
                             </p>
                           </td>
                         </tr>
@@ -426,8 +421,8 @@ export default function AdminDashboard({
                             <td className="py-3.5 px-5">
                               <p className="text-slate-800 font-medium">{vendor.kategori}</p>
                               <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60 font-medium">
-                                <ImageIcon className="w-3 h-3 text-slate-500" />
-                                {vendor.katalog?.length || 0} Foto Katalog
+                                <FileText className="w-3 h-3 text-rose-500" />
+                                {vendor.katalog?.length || 0} Dokumen PDF
                               </span>
                             </td>
 
